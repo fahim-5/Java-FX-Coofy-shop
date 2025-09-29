@@ -87,25 +87,10 @@ public class MenuController {
         }
     }
 
-    public void addProductToTable(String productName, int quantity, double unitPrice) {
-        // Product constructor arguments: productId, productName, image (byte[]), stock (quantity), price
+        public void addProductToTable(String productName, int quantity, double unitPrice) {
         Product product = new Product(null, productName, null, quantity, unitPrice);
 
-        // Check if the product is already in the list
-        Product existingProduct = productList.stream()
-                .filter(p -> p.getProductName().equals(productName))
-                .findFirst()
-                .orElse(null);
-
-        if (existingProduct != null) {
-            // Professional Code Design: If product exists, just update the quantity (stock)
-            existingProduct.setStock(existingProduct.getStock() + quantity);
-            menu_tableview.refresh(); // Refresh the table to show the updated quantity
-        } else {
-            // Add new product
-            productList.add(product);
-        }
-
+        productList.add(product);
         calculateTotal();
     }
 

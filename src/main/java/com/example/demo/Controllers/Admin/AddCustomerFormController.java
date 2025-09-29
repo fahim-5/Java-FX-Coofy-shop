@@ -92,7 +92,7 @@ public class AddCustomerFormController {
         txtAddress.getStyleClass().removeAll("mfx-text-field-error");
 
         String mobileNo = txtMobileNo.getText();
-        boolean isMobileNoValid = Pattern.matches("\\d{10}", mobileNo);
+        boolean isMobileNoValid = Pattern.matches("\\d{11}", mobileNo);
         if (!isMobileNoValid) {
             txtMobileNo.requestFocus();
             txtMobileNo.getStyleClass().add("mfx-text-field-error");

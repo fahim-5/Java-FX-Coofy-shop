@@ -101,7 +101,7 @@ public class AddEmployeeFormController {
 
 
         String userName = txtUserName.getText();
-        boolean isUserNameValid = Pattern.matches("[A-Za-z0-9/ ]{3,}", userName);
+        boolean isUserNameValid = Pattern.matches("[A-Za-z0-9/ ]{2,}", userName);
         if (!isUserNameValid) {
             txtUserName.requestFocus();
             txtUserName.getStyleClass().add("mfx-text-field-error");
@@ -122,7 +122,7 @@ public class AddEmployeeFormController {
 
 
         String mobileNo = txtMobileNo.getText();
-        boolean isMobileNoValid = Pattern.matches("\\d{10}", mobileNo);
+        boolean isMobileNoValid = Pattern.matches("\\d{11}", mobileNo);
         if (!isMobileNoValid) {
             txtMobileNo.requestFocus();
             txtMobileNo.getStyleClass().add("mfx-text-field-error");
