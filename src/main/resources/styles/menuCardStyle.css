@@ -1,42 +1,59 @@
-/* src/main/resources/css/styles.css */
-.anchor-pane {
-    -fx-background-color: #f0f0f0;
-    -fx-border-color: #f0f0f0;
-    -fx-border-width: 1px;
-    -fx-border-radius: 5px;
-    -fx-padding: 10px;
-   -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);
+/* CORRECTED and IMPROVED menuCardStyle.css */
 
+/* --- Card Container Styling --- */
+.anchor-pane {
+    /* Use a very light gray or white for a modern, clean look */
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E0E0E0; /* Subtle border */
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px; /* Slightly more rounded corners */
+    -fx-padding: 15px; /* Increase padding for breathing room */
+    /* Enhance the lift effect */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);
+    -fx-cursor: hand; /* Hint that the card is interactive */
 }
 
+.anchor-pane:hover {
+    -fx-background-color: #F8F8F8; /* Subtle hover effect */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 15, 0, 0, 0);
+}
+
+/* --- Label Styling (Text) --- */
 .label {
     -fx-font-size: 14px;
-    -fx-text-fill: #1dd1a1;
+    -fx-text-fill: #636e72; /* Darker gray for general text */
 }
 
 .label#prod_name {
-    -fx-font-size: 16px;
+    -fx-font-size: 18px; /* Larger name */
     -fx-font-weight: bold;
+    -fx-text-fill: #2d3436; /* Very dark text for high contrast */
+    -fx-padding: 0 0 5px 0; /* Add bottom padding */
 }
 
 .label#prod_price {
-    -fx-font-size: 16px;
+    -fx-font-size: 18px; /* Price matches name size */
     -fx-font-weight: bold;
-    -fx-text-fill: #f39c12;
-
+    -fx-text-fill: #f39c12; /* ACCENT/PRICE COLOR */
+    -fx-padding: 5px 0 0 0; /* Add top padding */
 }
 
+/* --- Button Styling (Add button) --- */
 .button {
-    -fx-background-color: #4CAF50;
+    -fx-background-color: #1dd1a1; /* Success/Go Color (Your MFX Active Color) */
     -fx-text-fill: white;
-    -fx-padding: 5px 10px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 15px;
     -fx-border-radius: 5px;
 }
 
 .button:hover {
-    -fx-background-color: #45a049;
+    -fx-background-color: #10ac84; /* Darker hover effect */
 }
 
 .spinner {
-    -fx-padding: 5px;
+    -fx-padding: 0;
+    -fx-border-color: #bdc3c7;
+    -fx-border-radius: 5px;
 }
