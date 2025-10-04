@@ -14,8 +14,8 @@ public class Users {
 
     public static String username;
 
-    // This method is used to check if the Admin username exists in the database
-    static boolean checkAdminUserName(String username) {
+    // Make these methods public
+    public static boolean checkAdminUserName(String username) {
         try {
             Connection connection = DbConnection.getInstance().getConnection();
             String sql = "SELECT * FROM admin WHERE name=?";
@@ -46,8 +46,8 @@ public class Users {
         }
     }
 
-    //This method is used to check if the Employee username exists in the database
-    static boolean checkEmployeeUserName(String username) {
+    // Make this method public
+    public static boolean checkEmployeeUserName(String username) {
         try {
             Connection connection = DbConnection.getInstance().getConnection();
             String sql = "SELECT * FROM employees WHERE name=?";
@@ -78,20 +78,62 @@ public class Users {
         }
     }
 
+    // Add these new methods for password reset
+    public static boolean resetAdminPassword(String username, String newPassword) {
+        try {
+            Connection connection = DbConnection.getInstance().getConnection();
+            String sql = "UPDATE admin SET password = ? WHERE name = ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setString(1, newPassword);
+            pstm.setString(2, username);
+            return pstm.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean resetEmployeePassword(String username, String newPassword) {
+        try {
+            Connection connection = DbConnection.getInstance().getConnection();
+            String sql = "UPDATE employees SET password = ? WHERE name = ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setString(1, newPassword);
+            pstm.setString(2, username);
+            return pstm.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Optional: Security question verification (if you implement security questions later)
+    public static boolean verifySecurityAnswer(String username, String userType, String answer) {
+        try {
+            Connection connection = DbConnection.getInstance().getConnection();
+            String table = "admin".equals(userType) ? "admin" : "employees";
+            String sql = "SELECT security_answer FROM " + table + " WHERE name = ?";
+            PreparedStatement pstm = connection.prepareStatement(sql);
+            pstm.setString(1, username);
+            ResultSet rs = pstm.executeQuery();
+
+            if (rs.next()) {
+                String storedAnswer = rs.getString("security_answer");
+                return storedAnswer != null && storedAnswer.equalsIgnoreCase(answer.trim());
+            }
+            return false;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Your existing methods below...
     public static List<Employee> getAllEmployees() throws SQLException {
-
         Connection connection = DbConnection.getInstance().getConnection();
-
         String sql = "SELECT * FROM employees";
-
         PreparedStatement pstm = connection.prepareStatement(sql);
-
         List<Employee> dtoList = new ArrayList<>();
-
         ResultSet resultSet = pstm.executeQuery();
 
         while (resultSet.next()) {
-
             String empId = resultSet.getString(1);
             String firstName = resultSet.getString(4);
             String lastName = resultSet.getString(5);
@@ -174,7 +216,8 @@ public class Users {
             throw new RuntimeException(e);
         }
     }
-        public static String generateNextEmployeeId() {
+
+    public static String generateNextEmployeeId() {
         try {
             Connection connection = DbConnection.getInstance().getConnection();
             String sql = "SELECT emp_id FROM employees ORDER BY emp_id DESC LIMIT 1";
