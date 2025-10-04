@@ -9,6 +9,8 @@ import io.github.palexdev.materialfx.css.themes.MFXThemeManager;
 import io.github.palexdev.materialfx.css.themes.Themes;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -39,13 +41,15 @@ public class EmployeeFormController {
     public TableColumn colUserName;
     public TableColumn colPassword;
 
+    private ObservableList<EmployeeTable> originalEmployeeList;
+    private FilteredList<EmployeeTable> filteredData;
+
     public void initialize() {
         setCellValuesFactory();
         loadAllEmployees();
+        setupSearchFilter();
     }
 
-    //TODO: Implement the functionality of the EmployeeFormController
-    //Display the employee details in the table
     private void setCellValuesFactory() {
         colEmployeeId.setCellValueFactory(new PropertyValueFactory<>("empId"));
         colFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
@@ -55,18 +59,15 @@ public class EmployeeFormController {
         colMobileNo.setCellValueFactory(new PropertyValueFactory<>("contact_Number"));
         colUpdate.setCellValueFactory(new PropertyValueFactory<>("updateButton"));
         colDelete.setCellValueFactory(new PropertyValueFactory<>("deleteButton"));
-
     }
 
     public void loadAllEmployees() {
-
-        ObservableList<EmployeeTable> obList = FXCollections.observableArrayList();
+        originalEmployeeList = FXCollections.observableArrayList();
         try {
-
             List<Employee> allEmployees = Users.getAllEmployees();
 
             for (Employee employee : allEmployees) {
-                obList.add(new EmployeeTable(
+                originalEmployeeList.add(new EmployeeTable(
                         employee.getEmpId(),
                         employee.getUserName(),
                         employee.getPassword(),
@@ -75,38 +76,98 @@ public class EmployeeFormController {
                         employee.getContact_Number()));
             }
 
-            for (int i = 0; i < obList.size(); i++) {
-                final int index = i;
+            setupButtonActions(allEmployees);
 
-                obList.get(i).getUpdateButton().setOnAction(event -> {
-                    try {
-                        updateEmployee(allEmployees.get(index).getEmpId());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+            // Initialize filtered data
+            filteredData = new FilteredList<>(originalEmployeeList, p -> true);
 
+            // Create sorted list
+            SortedList<EmployeeTable> sortedData = new SortedList<>(filteredData);
+            sortedData.comparatorProperty().bind(tblEmployee.comparatorProperty());
 
-                obList.get(i).getDeleteButton().setOnAction(event ->{
-
-                    ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
-                    ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-                    Optional<ButtonType> type = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure to delete this employee?", yes, no).showAndWait();
-
-                    if(type.orElse(no) == yes){
-
-                        String empId = allEmployees.get(index).getEmpId();
-                        deleteEmployee(empId);
-                        loadAllEmployees();
-                    }
-                });
-
-            }
-            tblEmployee.setItems(obList);
+            tblEmployee.setItems(sortedData);
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+            new Alert(Alert.AlertType.ERROR, "Failed to load employees: " + e.getMessage()).show();
+        }
+    }
+
+    private void setupButtonActions(List<Employee> allEmployees) {
+        for (int i = 0; i < originalEmployeeList.size(); i++) {
+            final int index = i;
+
+            originalEmployeeList.get(i).getUpdateButton().setOnAction(event -> {
+                try {
+                    updateEmployee(allEmployees.get(index).getEmpId());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            originalEmployeeList.get(i).getDeleteButton().setOnAction(event -> {
+                ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+                ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+                Optional<ButtonType> type = new Alert(Alert.AlertType.CONFIRMATION,
+                        "Are you sure to delete this employee?", yes, no).showAndWait();
+
+                if (type.orElse(no) == yes) {
+                    String empId = allEmployees.get(index).getEmpId();
+                    deleteEmployee(empId);
+                    loadAllEmployees(); // Reload the table after deletion
+                }
+            });
+        }
+    }
+
+    private void setupSearchFilter() {
+        // Add listener to search text field
+        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
+            filterEmployees(newValue);
+        });
+    }
+
+    private void filterEmployees(String searchText) {
+        if (filteredData == null) return;
+
+        filteredData.setPredicate(employee -> {
+            // If filter text is empty, show all employees
+            if (searchText == null || searchText.isEmpty()) {
+                return true;
+            }
+
+            // Convert search text to lower case for case-insensitive search
+            String lowerCaseFilter = searchText.toLowerCase();
+
+            // Filter by Employee ID
+            if (employee.getEmpId().toLowerCase().contains(lowerCaseFilter)) {
+                return true;
+            }
+
+            // Optional: You can also filter by other fields if needed
+            // For example, by first name:
+            // if (employee.getFirstName().toLowerCase().contains(lowerCaseFilter)) {
+            //     return true;
+            // }
+
+            return false; // Does not match
+        });
+    }
+
+    public void txtSearchOnAction(ActionEvent actionEvent) {
+        // This method will be called when Enter is pressed in the search field
+        // The filtering is already handled by the textProperty listener
+        // You can add additional logic here if needed
+        String searchText = txtSearch.getText();
+        filterEmployees(searchText);
+    }
+
+    // Clear search and show all employees
+    public void clearSearch() {
+        txtSearch.clear();
+        if (filteredData != null) {
+            filteredData.setPredicate(null);
         }
     }
 
@@ -115,7 +176,6 @@ public class EmployeeFormController {
         Parent rootNode = loader.load();
 
         UpdateEmployeeFormController updateEmployeeFormController = loader.getController();
-
         updateEmployeeFormController.setEmployeeFormController(this);
         updateEmployeeFormController.setEmployeeId(empId);
         updateEmployeeFormController.loadEmployeeDetails();
@@ -127,27 +187,22 @@ public class EmployeeFormController {
         stage.centerOnScreen();
         stage.setTitle("Update Employee");
         stage.show();
-
     }
 
     private void deleteEmployee(String empId) {
-
         boolean isDeleted = Users.deleteEmployee(empId);
-
-        if (isDeleted){
+        if (isDeleted) {
             new Alert(Alert.AlertType.CONFIRMATION, "Employee Deleted").show();
+        } else {
+            new Alert(Alert.AlertType.ERROR, "Failed to delete employee").show();
         }
-
     }
 
     public void btnAddEmployeeOnAction(ActionEvent actionEvent) throws IOException {
         FXMLLoader loader = new FXMLLoader(this.getClass().getResource("/view/Admin/addEmployeeForm.fxml"));
         Parent rootNode = loader.load();
 
-        // Get a reference to the AddCustomerFormController
         AddEmployeeFormController addEmployeeFormController = loader.getController();
-
-        // Pass a reference to this CustomerFormController
         addEmployeeFormController.setCustomerFormController(this);
 
         Scene scene = new Scene(rootNode);
@@ -159,13 +214,11 @@ public class EmployeeFormController {
         stage.show();
     }
 
-
     public void btnAttendanceOnAction(ActionEvent actionEvent) {
+        // Implement attendance functionality
     }
 
     public void btnSalaryOnAction(ActionEvent actionEvent) {
-    }
-
-    public void txtSearchOnAction(ActionEvent actionEvent) {
+        // Implement salary functionality
     }
 }
